@@ -22,8 +22,8 @@ packets = [i for i in allpackets if i.haslayer("TCP") and i.haslayer("Raw") and
         [x for x in 
             ("WWW-Authenticate: NTLM", #HTTP NTLMSSP_CHALLENGE
                 "Authorization: NTLM", #HTTP NTLMSSP_AUTH
-                "Proxy-Authenticate: Negotiate", #Proxy NTLMSSP_CHALLENGE
-                "Proxy-Authorization: Negotiate") #Proxy NTLMSSP_AUTH
+                "Proxy-Authenticate: NTLM", #Proxy NTLMSSP_CHALLENGE
+                "Proxy-Authorization: NTLM") #Proxy NTLMSSP_AUTH
             if x in i["Raw"].load]]
 acks = defaultdict(list)
 def store(i):
@@ -37,10 +37,10 @@ for packet in packets: #Frankenstein's state machine and TCP reassembly
             re.match(
                 REGEX
                 , i)][0]
-    if ntlmsspheader.startswith("WWW-Authenticate: NTLM ") or ntlmsspheader.startswith("Proxy-Authenticate: Negotiate"): #Type 2: Server challenge
+    if ntlmsspheader.startswith("WWW-Authenticate: NTLM ") or ntlmsspheader.startswith("Proxy-Authenticate: NTLM"): #Type 2: Server challenge
         packets = acks[packet["TCP"].ack]
         svrchallenge[packet["TCP"].ack] = ''.join(packets)
-    if ntlmsspheader.startswith("Authorization: NTLM ") or ntlmsspheader.startswith("Proxy-Authorization: Negotiate"): #Type 3: Client Auth
+    if ntlmsspheader.startswith("Authorization: NTLM ") or ntlmsspheader.startswith("Proxy-Authorization: NTLM"): #Type 3: Client Auth
         if svrchallenge.has_key(packet["TCP"].seq):
             packets = acks[packet["TCP"].ack]
             pairs.append([svrchallenge[packet["TCP"].seq], ''.join(packets)])
